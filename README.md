@@ -218,8 +218,7 @@ public class BusReservationSystem {
             }
             }
             }
-// Ticket Cancellation ()
-private static void cancelTicket(Connection conn, Scanner scanner) {
+            private static void cancelTicket(Connection conn, Scanner scanner) {
 try {
 System.out.print("Enter Booking ID to cancel: ");
 int bookingId = scanner.nextInt();
