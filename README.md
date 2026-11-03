@@ -219,52 +219,50 @@ public class BusReservationSystem {
             }
             }
             private static void cancelTicket(Connection conn, Scanner scanner) {
-try {
-System.out.print("Enter Booking ID to cancel: ");
-int bookingId = scanner.nextInt();
-
-String getBookingSQL = "SELECT bus_id, status FROM bookings WHERE booking_id = ?";
-int busId = -1;
-String status = "";
-try (PreparedStatement getStmt = conn.prepareStatement(getBookingSQL)) {
-getStmt.setInt(1, bookingId);
-ResultSet rs = getStmt.executeQuery();
-if (!rs.next()) {
-System.out.println("Booking ID not found.");
-conn.rollback();
-return;
-}
-busId = rs.getInt("bus_id");
-status = rs.getString("status");
-}
-if ("CANCELLED".equals(status)) {
-System.out.println("This ticket is already cancelled.");
-conn.rollback();
-return;
-}
-
-String updateBookingSQL = "UPDATE bookings SET status = 'CANCELLED' WHERE booking_id = ?";
-try (PreparedStatement ubStmt = conn.prepareStatement(updateBookingSQL)) {
-ubStmt.setInt(1, bookingId);
-ubStmt.executeUpdate();
-}
-
-String updateBusSQL = "UPDATE buses SET available_seats = available_seats + 1 WHERE bus_id = ?";
-try (PreparedStatement ubBusStmt = conn.prepareStatement(updateBusSQL)) {
-ubBusStmt.setInt(1, busId);
-ubBusStmt.executeUpdate();
-}
-
-conn.commit();
-System.out.println("Ticket cancelled successfully! Available seat restored.");
-} 
-catch (SQLException e) {
-try {
-conn.rollback();
-System.out.println("Cancellation failed. Rolled back: " + e.getMessage());
-} catch (SQLException rollbackEx) {
-rollbackEx.printStackTrace();
-}
-}
-}
-}
+            try {
+            System.out.print("Enter Booking ID to cancel: ");
+            int bookingId = scanner.nextInt();
+            
+            String getBookingSQL = "SELECT bus_id, status FROM bookings WHERE booking_id = ?";
+            int busId = -1;
+            String status = "";
+            try (PreparedStatement getStmt = conn.prepareStatement(getBookingSQL)) {
+            getStmt.setInt(1, bookingId);
+            ResultSet rs = getStmt.executeQuery();
+            if (!rs.next()) {
+            System.out.println("Booking ID not found.");
+            conn.rollback();
+            return;
+            }
+            busId = rs.getInt("bus_id");
+            status = rs.getString("status");
+            }
+            if ("CANCELLED".equals(status)) {
+            System.out.println("This ticket is already cancelled.");
+            conn.rollback();
+            return;
+            }
+            
+            String updateBookingSQL = "UPDATE bookings SET status = 'CANCELLED' WHERE booking_id = ?";
+            try (PreparedStatement ubStmt = conn.prepareStatement(updateBookingSQL)) {
+            ubStmt.setInt(1, bookingId);
+            ubStmt.executeUpdate();
+            }
+            String updateBusSQL = "UPDATE buses SET available_seats = available_seats + 1 WHERE bus_id = ?";
+            try (PreparedStatement ubBusStmt = conn.prepareStatement(updateBusSQL)) {
+            ubBusStmt.setInt(1, busId);
+            ubBusStmt.executeUpdate();
+            }
+            conn.commit();
+            System.out.println("Ticket cancelled successfully! Available seat restored.");
+            } 
+            catch (SQLException e) {
+            try {
+            conn.rollback();
+            System.out.println("Cancellation failed. Rolled back: " + e.getMessage());
+            } catch (SQLException rollbackEx) {
+            rollbackEx.printStackTrace();
+            }
+            }
+            }
+            }
