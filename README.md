@@ -206,19 +206,18 @@ public class BusReservationSystem {
             try (PreparedStatement uStmt = conn.prepareStatement(updateBusSQL)) {
             uStmt.setInt(1, busId);
             uStmt.executeUpdate();
-}
-conn.commit();
-System.out.println("Seat booked successfully! Transaction committed.");
-
-} catch (SQLException e) {
-try {
-conn.rollback();
-System.out.println("Booking failed. Transaction rolled back: " + e.getMessage());
-} catch (SQLException rollbackEx) {
-rollbackEx.printStackTrace();
-}
-}
-}
+            }
+            conn.commit();
+            System.out.println("Seat booked successfully! Transaction committed.");
+            } catch (SQLException e) {
+            try {
+            conn.rollback();
+            System.out.println("Booking failed. Transaction rolled back: " + e.getMessage());
+            } catch (SQLException rollbackEx) {
+            rollbackEx.printStackTrace();
+            }
+            }
+            }
 // Ticket Cancellation ()
 private static void cancelTicket(Connection conn, Scanner scanner) {
 try {
