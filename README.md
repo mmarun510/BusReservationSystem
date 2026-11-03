@@ -4,7 +4,6 @@ import java.sql.*;
 import java.util.Scanner;
 
 public class BusReservationSystem {
-    // Database configuration
     private static final String BASE_URL = "jdbc:mysql://localhost:3306/";
     private static final String DB_NAME = "bus_reservation_db";
     private static final String USER = "root";
@@ -49,8 +48,6 @@ public class BusReservationSystem {
             System.err.println("Database error occurred: " + e.getMessage());
         }
     }
-
-    // Step 1: Automatically creates database, tables, and inserts sample data
     private static void initializeDatabase() {
         try (Connection conn = DriverManager.getConnection(BASE_URL, USER, PASSWORD);
              Statement stmt = conn.createStatement()) {
@@ -88,7 +85,6 @@ public class BusReservationSystem {
                     "FOREIGN KEY (bus_id) REFERENCES buses(bus_id), " +
                     "FOREIGN KEY (passenger_id) REFERENCES passengers(passenger_id))");
 
-            // Seed sample data if the buses table is empty
             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM buses");
             if (rs.next() && rs.getInt(1) == 0) {
                 stmt.executeUpdate("INSERT INTO buses (bus_number, source, destination, total_seats, available_seats, fare) VALUES " +
@@ -102,8 +98,6 @@ public class BusReservationSystem {
             System.exit(1);
         }
     }
-
-    // Module 1: Search Buses
     private static void searchBuses(Connection conn, Scanner scanner) throws SQLException {
         scanner.nextLine(); 
         System.out.print("Enter Source: ");
@@ -134,9 +128,7 @@ public class BusReservationSystem {
                 System.out.println("No buses found for this route.");
             }
         }
-    }
-
-    // Module 2: Seat Booking 
+    } 
     private static void bookSeat(Connection conn, Scanner scanner) {
         try {
             System.out.print("Enter Bus ID: ");
@@ -156,7 +148,6 @@ public class BusReservationSystem {
             System.out.print("Enter Seat Number to Book: ");
             int seatNumber = scanner.nextInt();
 
-            // Validate Seat Availability 
             String checkBusSQL = "SELECT available_seats FROM buses WHERE bus_id = ? FOR UPDATE";
             try (PreparedStatement checkStmt = conn.prepareStatement(checkBusSQL)) {
                 checkStmt.setInt(1, busId);
@@ -174,7 +165,6 @@ public class BusReservationSystem {
                 }
             }
 
-            // Check if specific seat is already booked
             String checkSeatSQL = "SELECT booking_id FROM bookings WHERE bus_id = ? AND seat_number = ? AND status = 'CONFIRMED'";
             try (PreparedStatement seatStmt = conn.prepareStatement(checkSeatSQL)) {
                 seatStmt.setInt(1, busId);
@@ -187,7 +177,6 @@ public class BusReservationSystem {
                 }
             }
 
-            //  Insert Passenger Details
             String insertPassengerSQL = "INSERT INTO passengers (name, age, gender, phone) VALUES (?, ?, ?, ?)";
             int passengerId;
             try (PreparedStatement pStmt = conn.prepareStatement(insertPassengerSQL, Statement.RETURN_GENERATED_KEYS)) {
@@ -205,7 +194,6 @@ public class BusReservationSystem {
                 }
             }
 
-            //  Insert Booking Record
             String insertBookingSQL = "INSERT INTO bookings (bus_id, passenger_id, seat_number, status) VALUES (?, ?, ?, 'CONFIRMED')";
             try (PreparedStatement bStmt = conn.prepareStatement(insertBookingSQL)) {
                 bStmt.setInt(1, busId);
@@ -214,13 +202,11 @@ public class BusReservationSystem {
                 bStmt.executeUpdate();
             }
 
-            //  Decrement Available Seats 
             String updateBusSQL = "UPDATE buses SET available_seats = available_seats - 1 WHERE bus_id = ?";
             try (PreparedStatement uStmt = conn.prepareStatement(updateBusSQL)) {
             uStmt.setInt(1, busId);
             uStmt.executeUpdate();
 }
-// Commit all statements atomically
 conn.commit();
 System.out.println("Seat booked successfully! Transaction committed.");
 
@@ -239,7 +225,6 @@ try {
 System.out.print("Enter Booking ID to cancel: ");
 int bookingId = scanner.nextInt();
 
-//  Get bus_id and check current booking status
 String getBookingSQL = "SELECT bus_id, status FROM bookings WHERE booking_id = ?";
 int busId = -1;
 String status = "";
@@ -260,21 +245,18 @@ conn.rollback();
 return;
 }
 
-//  Update booking status to CANCELLED
 String updateBookingSQL = "UPDATE bookings SET status = 'CANCELLED' WHERE booking_id = ?";
 try (PreparedStatement ubStmt = conn.prepareStatement(updateBookingSQL)) {
 ubStmt.setInt(1, bookingId);
 ubStmt.executeUpdate();
 }
 
-//  Increment available_seats back in buses table
 String updateBusSQL = "UPDATE buses SET available_seats = available_seats + 1 WHERE bus_id = ?";
 try (PreparedStatement ubBusStmt = conn.prepareStatement(updateBusSQL)) {
 ubBusStmt.setInt(1, busId);
 ubBusStmt.executeUpdate();
 }
 
-// Commit cancellation operations atomically
 conn.commit();
 System.out.println("Ticket cancelled successfully! Available seat restored.");
 } 
